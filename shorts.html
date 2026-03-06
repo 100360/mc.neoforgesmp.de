@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shorts Viewer</title>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@600&display=swap');
+
+*{margin:0;padding:0;box-sizing:border-box;}
+
+body{
+font-family:'Orbitron',sans-serif;
+background:#0b0b15;
+color:white;
+overflow:hidden;
+}
+
+/* PARTICLES */
+#particles{
+position:fixed;
+top:0;left:0;
+width:100%;height:100%;
+z-index:-1;
+}
+
+/* SHORTS CONTAINER */
+.shorts-container{
+display:flex;
+overflow-x:auto;
+scroll-snap-type:x mandatory;
+height:100vh;
+}
+
+.short{
+flex:0 0 100%;
+display:flex;
+justify-content:center;
+align-items:center;
+scroll-snap-align:center;
+padding:20px;
+}
+
+video{
+height:90vh;
+border-radius:20px;
+box-shadow:0 0 25px #7a5cff;
+background:black;
+}
+
+/* NAV */
+nav{
+position:fixed;
+width:100%;
+background:rgba(15,15,30,0.9);
+display:flex;
+justify-content:center;
+gap:20px;
+padding:12px;
+z-index:1000;
+}
+
+nav a{
+color:#a970ff;
+text-decoration:none;
+transition:0.3s;
+font-size:14px;
+}
+
+nav a:hover{
+color:#00eaff;
+}
+
+
+</style>
+</head>
+<body>
+
+<nav>
+<a href="index.html">Zurück</a>
+
+</nav>
+
+<canvas id="particles"></canvas>
+
+<div class="shorts-container">
+
+    <div class="short">
+        <video src="Videos/video1.mp4" controls></video>
+    </div>
+
+    <div class="short">
+        <video src="Videos/video2.mp4" controls></video>
+    </div>
+
+    <div class="short">
+        <video src="Videos/video3.mp4" controls></video>
+    </div>
+
+</div>
+
+<script>
+/* === AUTO-PAUSE & AUTO-PLAY === */
+const videos = document.querySelectorAll("video");
+
+const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+        const vid = entry.target;
+
+        if (entry.isIntersecting) {
+            vid.play();
+        } else {
+            vid.pause();
+        }
+    });
+}, { threshold: 0.6 });
+
+videos.forEach(v => observer.observe(v));
+
+/* === RESUME PLAYBACK === */
+videos.forEach((vid, index) => {
+    const key = "video_pos_" + index;
+
+    const saved = localStorage.getItem(key);
+    if(saved){
+        vid.currentTime = parseFloat(saved);
+    }
+
+    vid.addEventListener("timeupdate", () => {
+        localStorage.setItem(key, vid.currentTime);
+    });
+});
+
+/* === PFEILTASTEN SCROLL (← →) === */
+document.addEventListener("keydown", (e) => {
+    const container = document.querySelector(".shorts-container");
+
+    if (e.key === "ArrowRight") {
+        container.scrollBy({ left: window.innerWidth, behavior: "smooth" });
+    }
+
+    if (e.key === "ArrowLeft") {
+        container.scrollBy({ left: -window.innerWidth, behavior: "smooth" });
+    }
+});
+
+/* === PARTICLES === */
+const canvas=document.getElementById("particles");
+const ctx=canvas.getContext("2d");
+canvas.width=window.innerWidth;
+canvas.height=window.innerHeight;
+
+let particles=[];
+for(let i=0;i<150;i++){
+particles.push({
+x:Math.random()*canvas.width,
+y:Math.random()*canvas.height,
+r:Math.random()*2,
+dx:(Math.random()-0.5),
+dy:(Math.random()-0.5)
+});
+}
+
+function animate(){
+ctx.clearRect(0,0,canvas.width,canvas.height);
+particles.forEach(p=>{
+ctx.beginPath();
+ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+ctx.fillStyle="#7a5cff";
+ctx.fill();
+p.x+=p.dx;
+p.y+=p.dy;
+if(p.x<0||p.x>canvas.width)p.dx*=-1;
+if(p.y<0||p.y>canvas.height)p.dy*=-1;
+});
+requestAnimationFrame(animate);
+}
+animate();
+</script>
+
+</body>
+</html>
